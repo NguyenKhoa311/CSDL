@@ -23,8 +23,14 @@ export class SearchService {
     });
   }
 
-  // Tìm kiếm đơn hàng
-  async searchOrders(customerNumber?: number, startDate?: string, endDate?: string) {
+  // Tìm kiếm đơn hàng nâng cao
+  async searchOrders(
+    customerNumber?: number,
+    startDate?: string,
+    endDate?: string,
+    status?: string,
+    productCode?: string
+  ) {
     let query = this.orderRepository.createQueryBuilder("o");
 
     if (customerNumber) {
@@ -39,7 +45,22 @@ export class SearchService {
       query = query.andWhere("o.orderDate <= :endDate", { endDate });
     }
 
-    return await query.leftJoinAndSelect("o.customer", "c").take(50).getMany();
+    if (status) {
+      query = query.andWhere("o.status = :status", { status });
+    }
+
+    if (productCode) {
+      query = query
+        .innerJoin("o.details", "od")
+        .andWhere("od.productCode = :productCode", { productCode });
+    }
+
+    return await query
+      .leftJoinAndSelect("o.customer", "c")
+      .leftJoinAndSelect("o.details", "od")
+      .leftJoinAndSelect("od.product", "p")
+      .take(50)
+      .getMany();
   }
 
   // Tìm kiếm sản phẩm

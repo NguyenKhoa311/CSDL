@@ -35,8 +35,10 @@ export class SearchController {
       const customerNumber = req.query.customerNumber ? parseInt(req.query.customerNumber as string) : undefined;
       const startDate = req.query.startDate as string;
       const endDate = req.query.endDate as string;
+      const status = req.query.status as string;
+      const productCode = req.query.productCode as string;
 
-      const data = await searchService.searchOrders(customerNumber, startDate, endDate);
+      const data = await searchService.searchOrders(customerNumber, startDate, endDate, status, productCode);
       res.json({ success: true, data });
     } catch (error) {
       res.status(500).json({ success: false, message: (error as Error).message });

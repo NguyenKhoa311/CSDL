@@ -107,6 +107,167 @@ async function searchOrdersByDate() {
   }
 }
 
+// ============ GLOBAL SEARCH WITH CATEGORY FILTER ============
+async function globalSearchWithCategory() {
+  const keyword = document.getElementById('globalKeyword').value.trim();
+  if (!keyword) {
+    alert('Vui lòng nhập từ khóa tìm kiếm');
+    return;
+  }
+
+  const searchCustomers = document.getElementById('searchCustomersCat').checked;
+  const searchProducts = document.getElementById('searchProductsCat').checked;
+  const searchOrders = document.getElementById('searchOrdersCat').checked;
+
+  if (!searchCustomers && !searchProducts && !searchOrders) {
+    alert('Vui lòng chọn ít nhất 1 danh mục');
+    return;
+  }
+
+  let html = '<div style="display: grid; gap: 20px;">';
+
+  try {
+    // Search Customers
+    if (searchCustomers) {
+      const response = await fetch(`${API_BASE}/search/customers?keyword=${encodeURIComponent(keyword)}`);
+      const result = await response.json();
+      
+      html += '<div>';
+      html += '<h4 style="color: #667eea; margin-bottom: 10px;">👥 Kết quả Khách hàng (' + (result.data?.length || 0) + ')</h4>';
+      if (result.success && result.data.length > 0) {
+        html += '<table style="width: 100%;"><thead><tr><th>Mã</th><th>Tên</th><th>Thành phố</th><th>Quốc gia</th></tr></thead><tbody>';
+        result.data.slice(0, 5).forEach(item => {
+          html += `<tr><td>${item.customerNumber}</td><td>${item.customerName}</td><td>${item.city || '-'}</td><td>${item.country}</td></tr>`;
+        });
+        html += '</tbody></table>';
+      } else {
+        html += '<p style="color: #999;">Không tìm thấy</p>';
+      }
+      html += '</div>';
+    }
+
+    // Search Products
+    if (searchProducts) {
+      const response = await fetch(`${API_BASE}/search/products?keyword=${encodeURIComponent(keyword)}`);
+      const result = await response.json();
+      
+      html += '<div>';
+      html += '<h4 style="color: #667eea; margin-bottom: 10px;">📦 Kết quả Sản phẩm (' + (result.data?.length || 0) + ')</h4>';
+      if (result.success && result.data.length > 0) {
+        html += '<table style="width: 100%;"><thead><tr><th>Mã</th><th>Tên</th><th>Dòng</th><th>Giá</th></tr></thead><tbody>';
+        result.data.slice(0, 5).forEach(item => {
+          html += `<tr><td>${item.productCode}</td><td>${item.productName}</td><td>${item.productLine}</td><td>$${parseFloat(item.buyPrice).toFixed(2)}</td></tr>`;
+        });
+        html += '</tbody></table>';
+      } else {
+        html += '<p style="color: #999;">Không tìm thấy</p>';
+      }
+      html += '</div>';
+    }
+
+    // Search Orders
+    if (searchOrders) {
+      const response = await fetch(`${API_BASE}/search/orders?startDate=&endDate=`);
+      const result = await response.json();
+      
+      // Filter orders by keyword in comment or customer name
+      let filteredOrders = (result.data || []).filter(order => 
+        (order.comments && order.comments.toLowerCase().includes(keyword.toLowerCase())) ||
+        (order.customer && order.customer.customerName.toLowerCase().includes(keyword.toLowerCase()))
+      ).slice(0, 5);
+
+      html += '<div>';
+      html += '<h4 style="color: #667eea; margin-bottom: 10px;">📋 Kết quả Đơn hàng (' + filteredOrders.length + ')</h4>';
+      if (filteredOrders.length > 0) {
+        html += '<table style="width: 100%;"><thead><tr><th>Số đơn</th><th>Khách</th><th>Ngày</th><th>Trạng thái</th></tr></thead><tbody>';
+        filteredOrders.forEach(item => {
+          html += `<tr><td>${item.orderNumber}</td><td>${item.customer.customerName}</td><td>${item.orderDate}</td><td>${item.status}</td></tr>`;
+        });
+        html += '</tbody></table>';
+      } else {
+        html += '<p style="color: #999;">Không tìm thấy</p>';
+      }
+      html += '</div>';
+    }
+
+    html += '</div>';
+    document.getElementById('globalResults').innerHTML = html;
+
+  } catch (error) {
+    document.getElementById('globalResults').innerHTML = `<div class="error">Lỗi: ${error.message}</div>`;
+  }
+}
+
+// ============ ADVANCED ORDER SEARCH ============
+async function advancedSearchOrders() {
+  const startDate = document.getElementById('advStartDate').value;
+  const endDate = document.getElementById('advEndDate').value;
+  const customerNumber = document.getElementById('advCustomerNumber').value;
+  const status = document.getElementById('advStatus').value;
+  const productCode = document.getElementById('advProductCode').value;
+
+  if (!startDate && !endDate && !customerNumber && !status && !productCode) {
+    alert('Vui lòng chọn ít nhất 1 bộ lọc');
+    return;
+  }
+
+  try {
+    let url = `${API_BASE}/search/orders?`;
+    if (startDate) url += `startDate=${startDate}&`;
+    if (endDate) url += `endDate=${endDate}&`;
+    if (customerNumber) url += `customerNumber=${customerNumber}&`;
+    if (status) url += `status=${encodeURIComponent(status)}&`;
+    if (productCode) url += `productCode=${encodeURIComponent(productCode)}&`;
+
+    const response = await fetch(url);
+    const result = await response.json();
+
+    if (result.success && result.data.length > 0) {
+      displayAdvancedOrderResults(result.data);
+    } else {
+      document.getElementById('advancedOrderResults').innerHTML = 
+        '<div class="empty">Không tìm thấy đơn hàng phù hợp</div>';
+    }
+  } catch (error) {
+    document.getElementById('advancedOrderResults').innerHTML = 
+      `<div class="error">Lỗi: ${error.message}</div>`;
+  }
+}
+
+function displayAdvancedOrderResults(data) {
+  let html = '<table><thead><tr>' +
+    '<th>Số đơn</th><th>Khách hàng</th><th>Ngày đặt</th><th>Trạng thái</th><th>Sản phẩm</th><th>Số lượng</th></tr></thead><tbody>';
+
+  data.forEach(order => {
+    const products = order.details?.map(d => `${d.product.productName} (${d.quantityOrdered})`).join(', ') || 'N/A';
+    const totalQuantity = order.details?.reduce((sum, d) => sum + d.quantityOrdered, 0) || 0;
+    
+    html += `<tr>
+      <td>${order.orderNumber}</td>
+      <td>${order.customer?.customerName || 'N/A'}</td>
+      <td>${order.orderDate}</td>
+      <td><span style="background: ${getStatusColor(order.status)}; padding: 5px 10px; border-radius: 5px; color: white;">${order.status}</span></td>
+      <td>${products}</td>
+      <td>${totalQuantity}</td>
+    </tr>`;
+  });
+
+  html += '</tbody></table>';
+  document.getElementById('advancedOrderResults').innerHTML = html;
+}
+
+function getStatusColor(status) {
+  const colors = {
+    'Shipped': '#4CAF50',
+    'Cancelled': '#f44336',
+    'On Hold': '#FF9800',
+    'Disputed': '#e91e63',
+    'In Process': '#2196F3',
+    'Resolved': '#009688'
+  };
+  return colors[status] || '#999';
+}
+
 function displayCustomerResults(data) {
   let html = '<table><thead><tr>' +
     '<th>Mã khách</th><th>Tên khách hàng</th><th>Thành phố</th>' +

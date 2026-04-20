@@ -148,6 +148,58 @@ button {
   border: none;
   cursor: pointer;
   font-weight: 600;
+  transition: transform 0.2s;
+}
+
+.search-group button:hover,
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+/* Checkbox Group */
+.checkbox-group {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.checkbox-group input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+/* Advanced Search Form */
+#advancedOrderResults,
+#globalResults {
+  margin-top: 15px;
+}
+
+select {
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+}
+
+select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+}
   transition: transform 0.2s, box-shadow 0.2s;
   min-width: 120px;
 }

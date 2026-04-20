@@ -26,32 +26,89 @@
       <div class="search-container">
         <h2>🔍 Tìm kiếm</h2>
         
+        <!-- TÌM KIẾM TOÀN CỤC VỚI DANH MỤC -->
         <div class="search-section">
-          <h3>Tìm kiếm khách hàng</h3>
+          <h3>🌐 Tìm kiếm Toàn cục</h3>
           <div class="search-group">
-            <input type="text" id="customerKeyword" placeholder="Nhập tên khách hàng, thành phố...">
-            <button onclick="searchCustomers()">Tìm kiếm</button>
+            <input type="text" id="globalKeyword" placeholder="Nhập từ khóa tìm kiếm...">
+            <div class="checkbox-group">
+              <label><input type="checkbox" id="searchCustomersCat" checked> Khách hàng</label>
+              <label><input type="checkbox" id="searchProductsCat" checked> Sản phẩm</label>
+              <label><input type="checkbox" id="searchOrdersCat" checked> Đơn hàng</label>
+            </div>
+            <button onclick="globalSearchWithCategory()">Tìm kiếm</button>
           </div>
-          <div id="customerResults" class="results"></div>
+          <div id="globalResults" class="results"></div>
         </div>
 
+        <!-- TÌM KIẾM ĐƠN HÀNG NÂNG CAO -->
         <div class="search-section">
-          <h3>Tìm kiếm sản phẩm</h3>
-          <div class="search-group">
-            <input type="text" id="productKeyword" placeholder="Nhập tên sản phẩm...">
-            <button onclick="searchProducts()">Tìm kiếm</button>
+          <h3>📋 Tìm kiếm Đơn hàng Nâng cao</h3>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+            <div>
+              <label>Từ ngày:</label>
+              <input type="date" id="advStartDate">
+            </div>
+            <div>
+              <label>Đến ngày:</label>
+              <input type="date" id="advEndDate">
+            </div>
+            <div>
+              <label>Khách hàng (ID):</label>
+              <input type="number" id="advCustomerNumber" placeholder="Mã khách hàng">
+            </div>
+            <div>
+              <label>Trạng thái:</label>
+              <select id="advStatus">
+                <option value="">-- Tất cả --</option>
+                <option value="Shipped">Shipped</option>
+                <option value="Cancelled">Cancelled</option>
+                <option value="On Hold">On Hold</option>
+                <option value="Disputed">Disputed</option>
+                <option value="In Process">In Process</option>
+                <option value="Resolved">Resolved</option>
+              </select>
+            </div>
+            <div style="grid-column: 1/3;">
+              <label>Mã sản phẩm:</label>
+              <input type="text" id="advProductCode" placeholder="Ví dụ: S10_1949">
+            </div>
           </div>
-          <div id="productResults" class="results"></div>
+          <button onclick="advancedSearchOrders()">Tìm kiếm</button>
+          <div id="advancedOrderResults" class="results"></div>
         </div>
 
+        <!-- TÌM KIẾM TỪNG LOẠI (CŨ) -->
         <div class="search-section">
-          <h3>Tìm kiếm đơn hàng theo ngày</h3>
-          <div class="search-group">
-            <input type="date" id="startDate">
-            <input type="date" id="endDate">
-            <button onclick="searchOrdersByDate()">Tìm kiếm</button>
+          <h3>🔎 Tìm kiếm Chi tiết</h3>
+          
+          <div style="margin-bottom: 15px;">
+            <h4>Khách hàng</h4>
+            <div class="search-group">
+              <input type="text" id="customerKeyword" placeholder="Nhập tên khách hàng, thành phố...">
+              <button onclick="searchCustomers()">Tìm kiếm</button>
+            </div>
+            <div id="customerResults" class="results"></div>
           </div>
-          <div id="orderResults" class="results"></div>
+
+          <div style="margin-bottom: 15px;">
+            <h4>Sản phẩm</h4>
+            <div class="search-group">
+              <input type="text" id="productKeyword" placeholder="Nhập tên sản phẩm...">
+              <button onclick="searchProducts()">Tìm kiếm</button>
+            </div>
+            <div id="productResults" class="results"></div>
+          </div>
+
+          <div>
+            <h4>Đơn hàng theo ngày</h4>
+            <div class="search-group">
+              <input type="date" id="startDate">
+              <input type="date" id="endDate">
+              <button onclick="searchOrdersByDate()">Tìm kiếm</button>
+            </div>
+            <div id="orderResults" class="results"></div>
+          </div>
         </div>
       </div>
     </section>
