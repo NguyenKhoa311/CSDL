@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Classicmodels - Tìm kiếm và Thống kê</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📊 Classicmodels - Hệ thống Tìm kiếm & Thống kê</h1>
+      <p>Phân tích dữ liệu khách hàng, đơn hàng và sản phẩm</p>
+    </header>
+
+    <nav class="nav-tabs">
+      <button class="nav-btn active" onclick="switchTab('search')">🔍 Tìm kiếm</button>
+      <button class="nav-btn" onclick="switchTab('stats')">📈 Thống kê</button>
+      <button class="nav-btn" onclick="switchTab('charts')">📊 Biểu đồ</button>
+      <button class="nav-btn" onclick="switchTab('pivot')">🔄 Pivot</button>
+    </nav>
+
+    <!-- TAB TÌM KIẾM -->
+    <section id="search" class="tab-content active">
+      <div class="search-container">
+        <h2>🔍 Tìm kiếm</h2>
+        
+        <div class="search-section">
+          <h3>Tìm kiếm khách hàng</h3>
+          <div class="search-group">
+            <input type="text" id="customerKeyword" placeholder="Nhập tên khách hàng, thành phố...">
+            <button onclick="searchCustomers()">Tìm kiếm</button>
+          </div>
+          <div id="customerResults" class="results"></div>
+        </div>
+
+        <div class="search-section">
+          <h3>Tìm kiếm sản phẩm</h3>
+          <div class="search-group">
+            <input type="text" id="productKeyword" placeholder="Nhập tên sản phẩm...">
+            <button onclick="searchProducts()">Tìm kiếm</button>
+          </div>
+          <div id="productResults" class="results"></div>
+        </div>
+
+        <div class="search-section">
+          <h3>Tìm kiếm đơn hàng theo ngày</h3>
+          <div class="search-group">
+            <input type="date" id="startDate">
+            <input type="date" id="endDate">
+            <button onclick="searchOrdersByDate()">Tìm kiếm</button>
+          </div>
+          <div id="orderResults" class="results"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB THỐNG KÊ -->
+    <section id="stats" class="tab-content">
+      <div class="stats-container">
+        <h2>📈 Thống kê dữ liệu</h2>
+        
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3>Top 10 Khách hàng</h3>
+            <button onclick="loadTopCustomers()">Tải dữ liệu</button>
+            <div id="topCustomersTable" class="table-container"></div>
+          </div>
+
+          <div class="stat-card">
+            <h3>Top 10 Sản phẩm bán chạy</h3>
+            <button onclick="loadTopProducts()">Tải dữ liệu</button>
+            <div id="topProductsTable" class="table-container"></div>
+          </div>
+
+          <div class="stat-card">
+            <h3>Thống kê theo khách hàng</h3>
+            <button onclick="loadStatsByCustomer()">Tải dữ liệu</button>
+            <div id="statsByCustomerTable" class="table-container"></div>
+          </div>
+
+          <div class="stat-card">
+            <h3>Thống kê theo thời gian</h3>
+            <button onclick="loadStatsByTime()">Tải dữ liệu</button>
+            <div id="statsByTimeTable" class="table-container"></div>
+          </div>
+
+          <div class="stat-card">
+            <h3>Thống kê theo sản phẩm</h3>
+            <button onclick="loadStatsByProduct()">Tải dữ liệu</button>
+            <div id="statsByProductTable" class="table-container"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB BIỂU ĐỒ -->
+    <section id="charts" class="tab-content">
+      <div class="charts-container">
+        <h2>📊 Biểu đồ thống kê</h2>
+        
+        <div class="chart-grid">
+          <div class="chart-card">
+            <h3>Doanh thu Top 10 Khách hàng</h3>
+            <canvas id="topCustomersChart"></canvas>
+          </div>
+
+          <div class="chart-card">
+            <h3>Lượng bán Top 10 Sản phẩm</h3>
+            <canvas id="topProductsChart"></canvas>
+          </div>
+
+          <div class="chart-card">
+            <h3>Doanh thu theo tháng</h3>
+            <canvas id="timeSeriesChart"></canvas>
+          </div>
+
+          <div class="chart-card">
+            <h3>Top 10 Dòng sản phẩm</h3>
+            <canvas id="productLineChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB PIVOT -->
+    <section id="pivot" class="tab-content">
+      <div class="pivot-container">
+        <h2>🔄 Bảng Pivot - Khách hàng vs Dòng sản phẩm</h2>
+        <button onclick="loadPivotData()">Tải dữ liệu Pivot</button>
+        <div id="pivotTable" class="table-container" style="margin-top: 20px;"></div>
+      </div>
+    </section>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
