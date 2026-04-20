@@ -191,6 +191,46 @@
     </section>
   </div>
 
+  <!-- Floating Chatbot Widget -->
+  <div id="chatbot-widget" class="chatbot-widget">
+    <!-- Chat Button -->
+    <div id="chat-button" class="chat-button" onclick="toggleChatBot()">
+      <span class="chat-icon">💬</span>
+      <span class="chat-badge" id="chat-badge">?</span>
+    </div>
+
+    <!-- Chat Window -->
+    <div id="chat-window" class="chat-window hidden">
+      <div class="chat-header">
+        <h3>🤖 Trợ lý Dữ liệu</h3>
+        <button class="close-btn" onclick="toggleChatBot()">✕</button>
+      </div>
+      
+      <div id="chat-messages" class="chat-messages">
+        <div class="message bot-message">
+          <p>👋 Xin chào! Tôi là trợ lý phân tích dữ liệu. Hãy hỏi tôi về dữ liệu nhé!</p>
+          <p style="font-size: 12px; margin-top: 8px; color: #666;">
+            <strong>Ví dụ:</strong><br>
+            • Khách hàng nào bán nhiều nhất?<br>
+            • Top 5 sản phẩm bán chạy?<br>
+            • Tổng doanh thu là bao nhiêu?<br>
+            • Đơn hàng nào bị hủy?
+          </p>
+        </div>
+      </div>
+
+      <div class="chat-input-area">
+        <input 
+          type="text" 
+          id="chat-input" 
+          placeholder="Hỏi tôi về dữ liệu..." 
+          onkeypress="handleChatKeyPress(event)"
+        >
+        <button onclick="sendChatMessage()" class="send-btn">Gửi</button>
+      </div>
+    </div>
+  </div>
+
   <script src="script.js"></script>
 </body>
 </html>

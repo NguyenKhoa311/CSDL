@@ -782,3 +782,251 @@ window.addEventListener('load', () => {
       console.warn('⚠️ API không kết nối. Vui lòng chạy backend server!');
     });
 });
+
+// ============ CHATBOT FUNCTIONS ============
+function toggleChatBot() {
+  const chatWindow = document.getElementById('chat-window');
+  chatWindow.classList.toggle('hidden');
+  
+  if (!chatWindow.classList.contains('hidden')) {
+    document.getElementById('chat-input').focus();
+  }
+}
+
+function handleChatKeyPress(event) {
+  if (event.key === 'Enter' && !event.shiftKey) {
+    event.preventDefault();
+    sendChatMessage();
+  }
+}
+
+async function sendChatMessage() {
+  const input = document.getElementById('chat-input');
+  const message = input.value.trim();
+  
+  if (!message) return;
+  
+  // Add user message
+  addMessageToChat(message, 'user');
+  input.value = '';
+  
+  // Show loading
+  addMessageToChat('...', 'bot-loading');
+  
+  // Get response
+  try {
+    const response = await getChatbotResponse(message);
+    // Remove loading message
+    removeLastMessage();
+    // Add response
+    addMessageToChat(response, 'bot');
+  } catch (error) {
+    removeLastMessage();
+    addMessageToChat('❌ Xin lỗi, tôi không thể trả lời câu hỏi này. Hãy thử với câu hỏi khác!', 'bot');
+  }
+}
+
+function addMessageToChat(text, sender) {
+  const messagesDiv = document.getElementById('chat-messages');
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `message ${sender}-message`;
+  
+  if (sender === 'bot-loading') {
+    messageDiv.innerHTML = '<div class="loading-indicator"><span></span><span></span><span></span></div>';
+    messageDiv.className = 'message bot-message bot-loading';
+  } else {
+    const p = document.createElement('p');
+    p.textContent = text;
+    messageDiv.appendChild(p);
+  }
+  
+  messagesDiv.appendChild(messageDiv);
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+function removeLastMessage() {
+  const messagesDiv = document.getElementById('chat-messages');
+  const lastMessage = messagesDiv.lastElementChild;
+  if (lastMessage && lastMessage.classList.contains('bot-loading')) {
+    lastMessage.remove();
+  }
+}
+
+async function getChatbotResponse(question) {
+  const lowerQ = question.toLowerCase();
+  
+  // Check question type and get appropriate data
+  if (matches(lowerQ, ['khách hàng', 'bán', 'nhiều', 'nhất', 'top'])) {
+    return await handleTopCustomersQuestion(lowerQ);
+  } else if (matches(lowerQ, ['sản phẩm', 'bán', 'chạy', 'top'])) {
+    return await handleTopProductsQuestion(lowerQ);
+  } else if (matches(lowerQ, ['doanh thu', 'tháng', 'doanh số', 'bán'])) {
+    return await handleRevenueQuestion(lowerQ);
+  } else if (matches(lowerQ, ['đơn hàng', 'hủy', 'cancelled', 'cancelled'])) {
+    return await handleCancelledOrdersQuestion();
+  } else if (matches(lowerQ, ['tổng', 'doanh thu', 'tất cả'])) {
+    return await handleTotalRevenueQuestion();
+  } else if (matches(lowerQ, ['bao nhiêu', 'số lượng', 'tổng', 'đơn hàng'])) {
+    return await handleTotalOrdersQuestion();
+  } else if (matches(lowerQ, ['help', 'giúp', 'hướng dẫn', 'làm sao'])) {
+    return getHelpMessage();
+  } else {
+    return 'Tôi chưa hiểu câu hỏi của bạn. Bạn có thể hỏi về:\n• Khách hàng bán nhiều nhất\n• Sản phẩm bán chạy\n• Doanh thu\n• Đơn hàng bị hủy\nHãy thử lại!';
+  }
+}
+
+function matches(question, keywords) {
+  return keywords.some(keyword => question.includes(keyword));
+}
+
+async function handleTopCustomersQuestion(question) {
+  try {
+    const limit = extractNumber(question) || 5;
+    const response = await fetch(`${API_BASE}/statistics/top-customers?limit=${limit}`);
+    const result = await response.json();
+    
+    if (!result.success || !result.data.length) {
+      return 'Không tìm thấy dữ liệu khách hàng.';
+    }
+    
+    let message = `📊 Top ${limit} khách hàng bán nhiều nhất:\n\n`;
+    result.data.forEach((customer, index) => {
+      message += `${index + 1}. ${customer.customerName}\n   💰 Doanh thu: $${parseFloat(customer.totalAmount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}\n`;
+    });
+    
+    return message;
+  } catch (error) {
+    return 'Lỗi khi lấy dữ liệu. Vui lòng thử lại!';
+  }
+}
+
+async function handleTopProductsQuestion(question) {
+  try {
+    const limit = extractNumber(question) || 5;
+    const response = await fetch(`${API_BASE}/statistics/top-products?limit=${limit}`);
+    const result = await response.json();
+    
+    if (!result.success || !result.data.length) {
+      return 'Không tìm thấy dữ liệu sản phẩm.';
+    }
+    
+    let message = `📦 Top ${limit} sản phẩm bán chạy:\n\n`;
+    result.data.forEach((product, index) => {
+      message += `${index + 1}. ${product.productName}\n   📈 Số lượng: ${product.totalQuantity}\n   💵 Doanh thu: $${parseFloat(product.totalAmount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}\n`;
+    });
+    
+    return message;
+  } catch (error) {
+    return 'Lỗi khi lấy dữ liệu. Vui lòng thử lại!';
+  }
+}
+
+async function handleRevenueQuestion(question) {
+  try {
+    const response = await fetch(`${API_BASE}/statistics/by-time`);
+    const result = await response.json();
+    
+    if (!result.success || !result.data.length) {
+      return 'Không tìm thấy dữ liệu doanh thu.';
+    }
+    
+    let message = '📈 Doanh thu theo tháng:\n\n';
+    const dataByYear = {};
+    
+    result.data.forEach(item => {
+      const yearMonth = `${item.year}-${String(item.month).padStart(2, '0')}`;
+      if (!dataByYear[item.year]) dataByYear[item.year] = [];
+      dataByYear[item.year].push(`  Tháng ${item.month}: $${parseFloat(item.totalAmount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`);
+    });
+    
+    Object.keys(dataByYear).sort().reverse().forEach(year => {
+      message += `Năm ${year}:\n${dataByYear[year].join('\n')}\n\n`;
+    });
+    
+    return message;
+  } catch (error) {
+    return 'Lỗi khi lấy dữ liệu. Vui lòng thử lại!';
+  }
+}
+
+async function handleCancelledOrdersQuestion() {
+  try {
+    const response = await fetch(`${API_BASE}/search/orders?status=Cancelled`);
+    const result = await response.json();
+    
+    if (!result.success || !result.data.length) {
+      return '✅ Tốt! Không có đơn hàng nào bị hủy.';
+    }
+    
+    let message = `❌ Có ${result.data.length} đơn hàng bị hủy:\n\n`;
+    result.data.slice(0, 5).forEach((order, index) => {
+      message += `${index + 1}. Đơn #${order.orderNumber} - ${order.customer.customerName}\n   📅 Ngày: ${order.orderDate}\n`;
+    });
+    
+    if (result.data.length > 5) {
+      message += `\n... và ${result.data.length - 5} đơn khác`;
+    }
+    
+    return message;
+  } catch (error) {
+    return 'Lỗi khi lấy dữ liệu. Vui lòng thử lại!';
+  }
+}
+
+async function handleTotalRevenueQuestion() {
+  try {
+    const response = await fetch(`${API_BASE}/statistics/top-customers?limit=1000`);
+    const result = await response.json();
+    
+    if (!result.success || !result.data.length) {
+      return 'Không tìm thấy dữ liệu.';
+    }
+    
+    let total = 0;
+    result.data.forEach(customer => {
+      total += parseFloat(customer.totalAmount);
+    });
+    
+    return `💰 Tổng doanh thu: $${total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
+  } catch (error) {
+    return 'Lỗi khi lấy dữ liệu. Vui lòng thử lại!';
+  }
+}
+
+async function handleTotalOrdersQuestion() {
+  try {
+    const response = await fetch(`${API_BASE}/statistics/by-time`);
+    const result = await response.json();
+    
+    if (!result.success || !result.data.length) {
+      return 'Không tìm thấy dữ liệu.';
+    }
+    
+    let total = 0;
+    result.data.forEach(item => {
+      total += parseInt(item.orderCount);
+    });
+    
+    return `📋 Tổng số đơn hàng: ${total} đơn`;
+  } catch (error) {
+    return 'Lỗi khi lấy dữ liệu. Vui lòng thử lại!';
+  }
+}
+
+function getHelpMessage() {
+  return `🤖 Dưới đây là những câu hỏi bạn có thể hỏi tôi:\n\n` +
+    `📊 Thống kê:\n` +
+    `• "Khách hàng nào bán nhiều nhất?"\n` +
+    `• "Top 10 sản phẩm bán chạy?"\n` +
+    `• "Doanh thu theo tháng là bao nhiêu?"\n` +
+    `• "Tổng doanh thu là bao nhiêu?"\n` +
+    `• "Có bao nhiêu đơn hàng?"\n\n` +
+    `⚠️ Quản lý:\n` +
+    `• "Đơn hàng nào bị hủy?"\n\n` +
+    `Hãy thử những câu hỏi trên!`;
+}
+
+function extractNumber(text) {
+  const match = text.match(/\d+/);
+  return match ? parseInt(match[0]) : null;
+}
